@@ -1,0 +1,13 @@
+// src/app/(private)/styles.module.scss
+
+.layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #eef3f8;
+}
+
+.content {
+    width: 100%;
+    flex: 1;
+}

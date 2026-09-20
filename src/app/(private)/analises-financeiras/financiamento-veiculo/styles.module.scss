@@ -1,0 +1,85 @@
+// src/app/(private)/analises-financeiras/financiamento-veiculo/styles.module.scss
+
+.page {
+    width: min(1500px, 100%);
+    margin: 0 auto;
+    padding: 36px 4% 55px;
+}
+
+.backButton {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 10px 16px;
+    border: 1px solid #0e7490;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    color: #ffffff;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(8, 145, 178, 0.22);
+    transition:
+        transform 0.2s ease,
+        filter 0.2s ease;
+
+    &:hover {
+        transform: translateX(-3px);
+        filter: brightness(1.05);
+    }
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 25px;
+
+    span {
+        color: #0891b2;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    h1 {
+        margin: 7px 0;
+        color: #0f172a;
+        font-size: clamp(29px, 4vw, 41px);
+    }
+
+    p {
+        max-width: 850px;
+        margin: 0;
+        color: #64748b;
+        line-height: 1.65;
+    }
+}
+
+.headerIcon {
+    width: 62px;
+    height: 62px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #06b6d4, #0e7490);
+    color: #ffffff;
+    box-shadow: 0 13px 28px rgba(8, 145, 178, 0.24);
+}
+
+@media (max-width: 700px) {
+    .page {
+        padding: 24px 18px 40px;
+    }
+
+    .header {
+        align-items: flex-start;
+    }
+
+    .headerIcon {
+        width: 52px;
+        height: 52px;
+    }
+}

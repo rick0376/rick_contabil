@@ -1,0 +1,78 @@
+//src/app/(private)/sistema-price/page.tsx
+
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+
+import SistemaPriceCalculator from "@/components/calculators/SistemaPriceCalculator/SistemaPriceCalculator";
+
+import styles from "./styles.module.scss";
+
+type SistemaPricePageProps = {
+    searchParams: Promise<{
+        calculationId?: string | string[];
+        version?: string | string[];
+    }>;
+};
+
+function getSearchParam(
+    value: string | string[] | undefined,
+) {
+    return Array.isArray(value) ? value[0] : value;
+}
+
+function parseVersion(value: string | undefined) {
+    if (!value) {
+        return undefined;
+    }
+
+    const version = Number(value);
+
+    if (!Number.isInteger(version) || version <= 0) {
+        return undefined;
+    }
+
+    return version;
+}
+
+export default async function SistemaPricePage({
+    searchParams,
+}: SistemaPricePageProps) {
+    const params = await searchParams;
+
+    const calculationId = getSearchParam(
+        params.calculationId,
+    );
+
+    const calculationVersion = parseVersion(
+        getSearchParam(params.version),
+    );
+
+    return (
+        <div className={styles.page}>
+            <Link
+                href="/dashboard"
+                className={styles.backButton}
+            >
+                <ArrowLeft size={18} />
+                Voltar ao Dashboard
+            </Link>
+
+            <header className={styles.header}>
+                <span>Sistema de amortização</span>
+
+                <h1>Calculadora do Sistema Price</h1>
+
+                <p>
+                    Calcule prestações fixas, juros,
+                    amortizações e a evolução do saldo
+                    devedor de financiamentos.
+                </p>
+            </header>
+
+            <SistemaPriceCalculator
+                calculationId={calculationId}
+                calculationVersion={calculationVersion}
+            />
+        </div>
+    );
+}

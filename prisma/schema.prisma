@@ -1,0 +1,662 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ClientType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum AddressType {
+  RESIDENTIAL
+  COMMERCIAL
+  CORRESPONDENCE
+  OTHER
+}
+
+enum LegalProcessStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProcessPartyRole {
+  PLAINTIFF
+  DEFENDANT
+  INTERESTED_PARTY
+  THIRD_PARTY
+  EXPERT_ASSISTANT
+  OTHER
+}
+
+enum CalculationStatus {
+  DRAFT
+  CALCULATED
+  FINALIZED
+  ARCHIVED
+}
+
+enum CalculationRevisionStatus {
+  DRAFT
+  FINALIZED
+}
+
+enum ExpertReportStatus {
+  DRAFT
+  IN_REVIEW
+  FINALIZED
+  ARCHIVED
+}
+
+enum ExpertReportRevisionStatus {
+  DRAFT
+  IN_REVIEW
+  FINALIZED
+}
+
+enum ReportSectionType {
+  COVER
+  IDENTIFICATION
+  PARTIES
+  EXPERTISE_OBJECT
+  CASE_SUMMARY
+  ANALYZED_DOCUMENTS
+  PREMISES
+  METHODOLOGY
+  INPUT_DATA
+  FORMULAS
+  CALCULATIONS
+  RESULTS
+  QUESTIONS
+  CONCLUSION
+  CLOSING
+  SIGNATURE
+  CUSTOM
+}
+
+enum QuestionOrigin {
+  COURT
+  PLAINTIFF
+  DEFENDANT
+  EXPERT
+  OTHER
+}
+
+enum GeneratedDocumentType {
+  CALCULATION_MEMORY
+  EXPERT_REPORT
+  AMORTIZATION_SCHEDULE
+  OTHER
+}
+
+enum GeneratedDocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  ARCHIVE
+  RESTORE
+  DELETE
+  FINALIZE
+  GENERATE_DOCUMENT
+  DOWNLOAD_DOCUMENT
+}
+
+model AppUserProfile {
+  id          String   @id @default(cuid())
+  panelUserId String   @unique
+  name        String
+  username    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  professionalProfile   ProfessionalProfile?
+  clients               Client[]               @relation("ClientOwner")
+  legalProcesses        LegalProcess[]         @relation("ProcessOwner")
+  calculations          Calculation[]          @relation("CalculationOwner")
+  calculationRevisions  CalculationRevision[]  @relation("RevisionAuthor")
+  expertReports         ExpertReport[]         @relation("ReportOwner")
+  expertReportRevisions ExpertReportRevision[] @relation("ReportRevisionAuthor")
+  expertQuestions       ExpertQuestion[]       @relation("QuestionAuthor")
+  processDocuments      ProcessDocument[]      @relation("ProcessDocumentOwner")
+  generatedDocuments    GeneratedDocument[]    @relation("GeneratedDocumentOwner")
+  auditEvents           AuditEvent[]           @relation("AuditActor")
+}
+
+model ProfessionalProfile {
+  id                String         @id @default(cuid())
+  userId            String         @unique
+  user              AppUserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName          String
+  cpf               String?
+  crcNumber         String?
+  crcState          String?
+  crcCategory       String?
+  businessName      String?
+  email             String?
+  phone             String?
+  whatsapp          String?
+  addressLine       String?
+  addressNumber     String?
+  addressComplement String?
+  district          String?
+  city              String?
+  state             String?
+  zipCode           String?
+  reportClosingText String?        @db.Text
+  signatureName     String?
+  signatureTitle    String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Client {
+  id                    String         @id @default(cuid())
+  userId                String
+  user                  AppUserProfile @relation("ClientOwner", fields: [userId], references: [id], onDelete: Restrict)
+  type                  ClientType
+  status                RecordStatus   @default(ACTIVE)
+  name                  String
+  tradeName             String?
+  documentNumber        String?
+  secondaryDocument     String?
+  stateRegistration     String?
+  birthOrFoundationDate DateTime?
+  email                 String?
+  phone                 String?
+  mobile                String?
+  notes                 String?        @db.Text
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  deletedAt             DateTime?
+
+  addresses        ClientAddress[]
+  processParties   ProcessParty[]
+  calculations     Calculation[]
+  expertReports    ExpertReport[]
+  processDocuments ProcessDocument[]
+
+  @@unique([userId, documentNumber])
+  @@index([userId])
+  @@index([name])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ClientAddress {
+  id         String      @id @default(cuid())
+  clientId   String
+  client     Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type       AddressType @default(RESIDENTIAL)
+  street     String
+  number     String?
+  complement String?
+  district   String?
+  city       String
+  state      String
+  zipCode    String?
+  country    String      @default("Brasil")
+  isPrimary  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([clientId])
+  @@index([isPrimary])
+}
+
+model LegalProcess {
+  id              String             @id @default(cuid())
+  userId          String
+  user            AppUserProfile     @relation("ProcessOwner", fields: [userId], references: [id], onDelete: Restrict)
+  caseNumber      String?
+  title           String?
+  court           String?
+  courtDivision   String?
+  district        String?
+  city            String?
+  state           String?
+  actionClass     String?
+  subject         String?
+  expertiseObject String?            @db.Text
+  appointmentDate DateTime?
+  deadlineDate    DateTime?
+  referenceDate   DateTime?
+  status          LegalProcessStatus @default(DRAFT)
+  notes           String?            @db.Text
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+
+  parties       ProcessParty[]
+  calculations  Calculation[]
+  expertReports ExpertReport[]
+  questions     ExpertQuestion[]
+  documents     ProcessDocument[]
+
+  @@unique([userId, caseNumber])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProcessParty {
+  id             String           @id @default(cuid())
+  legalProcessId String
+  legalProcess   LegalProcess     @relation(fields: [legalProcessId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         Client           @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  role           ProcessPartyRole
+  isPrimary      Boolean          @default(false)
+  notes          String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([legalProcessId, clientId, role])
+  @@index([legalProcessId])
+  @@index([clientId])
+  @@index([role])
+}
+
+model Calculation {
+  id             String            @id @default(cuid())
+  userId         String
+  user           AppUserProfile    @relation("CalculationOwner", fields: [userId], references: [id], onDelete: Restrict)
+  clientId       String?
+  client         Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  legalProcessId String?
+  legalProcess   LegalProcess?     @relation(fields: [legalProcessId], references: [id], onDelete: SetNull)
+  type           String
+  title          String?
+  description    String?           @db.Text
+  status         CalculationStatus @default(DRAFT)
+  referenceDate  DateTime?
+  currency       String            @default("BRL")
+  currentVersion Int               @default(0)
+
+  // Campos mantidos temporariamente para preservar compatibilidade com a estrutura inicial.
+  input  Json?
+  result Json?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  revisions           CalculationRevision[]
+  reportLinks         ExpertReportCalculation[]
+  reportRevisionLinks ExpertReportRevisionCalculation[]
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([legalProcessId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CalculationRevision {
+  id            String                    @id @default(cuid())
+  calculationId String
+  calculation   Calculation               @relation(fields: [calculationId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     AppUserProfile            @relation("RevisionAuthor", fields: [createdById], references: [id], onDelete: Restrict)
+  version       Int
+  status        CalculationRevisionStatus @default(DRAFT)
+  engineVersion String                    @default("1.0.0")
+  referenceDate DateTime?
+  input         Json
+  premises      Json?
+  methodology   Json?
+  formulas      Json?
+  result        Json
+  summary       Json?
+  warnings      Json?
+  notes         String?                   @db.Text
+  integrityHash String?
+  finalizedAt   DateTime?
+  createdAt     DateTime                  @default(now())
+
+  lines               CalculationLine[]
+  reportLinks         ExpertReportCalculation[]
+  reportRevisionLinks ExpertReportRevisionCalculation[]
+  generatedDocuments  GeneratedDocument[]
+
+  @@unique([calculationId, version])
+  @@index([calculationId])
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CalculationLine {
+  id                    String              @id @default(cuid())
+  calculationRevisionId String
+  calculationRevision   CalculationRevision @relation(fields: [calculationRevisionId], references: [id], onDelete: Cascade)
+  sequence              Int
+  label                 String?
+  competence            DateTime?
+  dueDate               DateTime?
+  paymentDate           DateTime?
+  openingBalance        Decimal?            @db.Decimal(20, 2)
+  correctionRate        Decimal?            @db.Decimal(18, 10)
+  monetaryCorrection    Decimal?            @db.Decimal(20, 2)
+  correctedBalance      Decimal?            @db.Decimal(20, 2)
+  interestRate          Decimal?            @db.Decimal(18, 10)
+  interest              Decimal?            @db.Decimal(20, 2)
+  amortization          Decimal?            @db.Decimal(20, 2)
+  installment           Decimal?            @db.Decimal(20, 2)
+  insurance             Decimal?            @db.Decimal(20, 2)
+  fee                   Decimal?            @db.Decimal(20, 2)
+  fine                  Decimal?            @db.Decimal(20, 2)
+  payment               Decimal?            @db.Decimal(20, 2)
+  closingBalance        Decimal?            @db.Decimal(20, 2)
+  debit                 Decimal?            @db.Decimal(20, 2)
+  credit                Decimal?            @db.Decimal(20, 2)
+  dayCount              Int?
+  weightedBalance       Decimal?            @db.Decimal(24, 2)
+  metadata              Json?
+  createdAt             DateTime            @default(now())
+
+  @@unique([calculationRevisionId, sequence])
+  @@index([calculationRevisionId])
+  @@index([competence])
+  @@index([dueDate])
+}
+
+model ExpertReport {
+  id             String             @id @default(cuid())
+  userId         String
+  user           AppUserProfile     @relation("ReportOwner", fields: [userId], references: [id], onDelete: Restrict)
+  legalProcessId String?
+  legalProcess   LegalProcess?      @relation(fields: [legalProcessId], references: [id], onDelete: SetNull)
+  clientId       String?
+  client         Client?            @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  title          String
+  reportNumber   String?
+  status         ExpertReportStatus @default(DRAFT)
+  purpose        String?            @db.Text
+  referenceDate  DateTime?
+  place          String?
+  issuedAt       DateTime?
+  currentVersion Int                @default(1)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+
+  // Mantido para compatibilidade com a estrutura inicial.
+  sections ExpertReportSection[]
+
+  revisions           ExpertReportRevision[]
+  calculationLinks    ExpertReportCalculation[]
+  questions           ExpertQuestion[]
+  sourceDocumentLinks ReportSourceDocument[]
+  generatedDocuments  GeneratedDocument[]
+
+  @@unique([userId, reportNumber])
+  @@index([userId])
+  @@index([legalProcessId])
+  @@index([clientId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ExpertReportSection {
+  id             String            @id @default(cuid())
+  expertReportId String
+  expertReport   ExpertReport      @relation(fields: [expertReportId], references: [id], onDelete: Cascade)
+  type           ReportSectionType
+  title          String
+  plainText      String?           @db.Text
+  content        Json?
+  position       Int
+  isVisible      Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([expertReportId])
+  @@index([type])
+  @@index([position])
+}
+
+model ExpertReportRevision {
+  id             String                     @id @default(cuid())
+  expertReportId String
+  expertReport   ExpertReport               @relation(fields: [expertReportId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      AppUserProfile             @relation("ReportRevisionAuthor", fields: [createdById], references: [id], onDelete: Restrict)
+  version        Int
+  status         ExpertReportRevisionStatus @default(DRAFT)
+
+  title           String
+  reportNumber    String?
+  purpose         String?   @db.Text
+  referenceDate   DateTime?
+  place           String?
+  issuedAt        DateTime?
+  templateVersion String    @default("expert-report-1.0.0")
+
+  // Snapshots preservam exatamente os dados usados na emissão desta revisão.
+  sourceSnapshot          Json
+  clientSnapshot          Json?
+  legalProcessSnapshot    Json?
+  professionalSnapshot    Json?
+  questionsSnapshot       Json?
+  sourceDocumentsSnapshot Json?
+
+  integrityHash String?
+  notes         String?   @db.Text
+  finalizedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sections           ExpertReportRevisionSection[]
+  calculationLinks   ExpertReportRevisionCalculation[]
+  generatedDocuments GeneratedDocument[]
+
+  @@unique([expertReportId, version])
+  @@index([expertReportId])
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ExpertReportRevisionSection {
+  id                     String               @id @default(cuid())
+  expertReportRevisionId String
+  expertReportRevision   ExpertReportRevision @relation(fields: [expertReportRevisionId], references: [id], onDelete: Cascade)
+  type                   ReportSectionType
+  title                  String
+  plainText              String?              @db.Text
+  content                Json?
+  position               Int
+  isVisible              Boolean              @default(true)
+  isAutoGenerated        Boolean              @default(false)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  @@unique([expertReportRevisionId, position])
+  @@index([expertReportRevisionId])
+  @@index([type])
+  @@index([position])
+}
+
+model ExpertReportCalculation {
+  id                    String              @id @default(cuid())
+  expertReportId        String
+  expertReport          ExpertReport        @relation(fields: [expertReportId], references: [id], onDelete: Cascade)
+  calculationId         String
+  calculation           Calculation         @relation(fields: [calculationId], references: [id], onDelete: Restrict)
+  calculationRevisionId String
+  calculationRevision   CalculationRevision @relation(fields: [calculationRevisionId], references: [id], onDelete: Restrict)
+  position              Int                 @default(0)
+  notes                 String?             @db.Text
+  createdAt             DateTime            @default(now())
+
+  @@unique([expertReportId, calculationRevisionId])
+  @@index([expertReportId])
+  @@index([calculationId])
+  @@index([calculationRevisionId])
+  @@index([position])
+}
+
+model ExpertReportRevisionCalculation {
+  id                     String               @id @default(cuid())
+  expertReportRevisionId String
+  expertReportRevision   ExpertReportRevision @relation(fields: [expertReportRevisionId], references: [id], onDelete: Cascade)
+  calculationId          String
+  calculation            Calculation          @relation(fields: [calculationId], references: [id], onDelete: Restrict)
+  calculationRevisionId  String
+  calculationRevision    CalculationRevision  @relation(fields: [calculationRevisionId], references: [id], onDelete: Restrict)
+  position               Int                  @default(0)
+  notes                  String?              @db.Text
+
+  // Cópia completa dos dados relevantes para impedir alterações retroativas.
+  snapshot Json
+
+  createdAt DateTime @default(now())
+
+  @@unique([expertReportRevisionId, calculationRevisionId])
+  @@index([expertReportRevisionId])
+  @@index([calculationId])
+  @@index([calculationRevisionId])
+  @@index([position])
+}
+
+model ExpertQuestion {
+  id             String         @id @default(cuid())
+  createdById    String
+  createdBy      AppUserProfile @relation("QuestionAuthor", fields: [createdById], references: [id], onDelete: Restrict)
+  legalProcessId String
+  legalProcess   LegalProcess   @relation(fields: [legalProcessId], references: [id], onDelete: Cascade)
+  expertReportId String?
+  expertReport   ExpertReport?  @relation(fields: [expertReportId], references: [id], onDelete: SetNull)
+  origin         QuestionOrigin
+  sequence       Int
+  question       String         @db.Text
+  answer         String?        @db.Text
+  answeredAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([createdById])
+  @@index([legalProcessId])
+  @@index([expertReportId])
+  @@index([origin])
+  @@index([sequence])
+}
+
+model ProcessDocument {
+  id             String         @id @default(cuid())
+  userId         String
+  user           AppUserProfile @relation("ProcessDocumentOwner", fields: [userId], references: [id], onDelete: Restrict)
+  legalProcessId String
+  legalProcess   LegalProcess   @relation(fields: [legalProcessId], references: [id], onDelete: Cascade)
+  clientId       String?
+  client         Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  title          String
+  category       String?
+  fileName       String
+  storageKey     String?
+  mimeType       String?
+  sizeBytes      Int?
+  integrityHash  String?
+  documentDate   DateTime?
+  notes          String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+
+  reportLinks ReportSourceDocument[]
+
+  @@index([userId])
+  @@index([legalProcessId])
+  @@index([clientId])
+  @@index([createdAt])
+}
+
+model ReportSourceDocument {
+  id                String          @id @default(cuid())
+  expertReportId    String
+  expertReport      ExpertReport    @relation(fields: [expertReportId], references: [id], onDelete: Cascade)
+  processDocumentId String
+  processDocument   ProcessDocument @relation(fields: [processDocumentId], references: [id], onDelete: Restrict)
+  position          Int             @default(0)
+  notes             String?         @db.Text
+  createdAt         DateTime        @default(now())
+
+  @@unique([expertReportId, processDocumentId])
+  @@index([expertReportId])
+  @@index([processDocumentId])
+  @@index([position])
+}
+
+model GeneratedDocument {
+  id                     String                  @id @default(cuid())
+  userId                 String
+  user                   AppUserProfile          @relation("GeneratedDocumentOwner", fields: [userId], references: [id], onDelete: Restrict)
+  expertReportId         String?
+  expertReport           ExpertReport?           @relation(fields: [expertReportId], references: [id], onDelete: SetNull)
+  expertReportRevisionId String?
+  expertReportRevision   ExpertReportRevision?   @relation(fields: [expertReportRevisionId], references: [id], onDelete: SetNull)
+  calculationRevisionId  String?
+  calculationRevision    CalculationRevision?    @relation(fields: [calculationRevisionId], references: [id], onDelete: SetNull)
+  type                   GeneratedDocumentType
+  status                 GeneratedDocumentStatus @default(PENDING)
+  fileName               String
+  storageKey             String?
+  mimeType               String                  @default("application/pdf")
+  sizeBytes              Int?
+  integrityHash          String?
+  pageCount              Int?
+  templateVersion        String?
+  errorMessage           String?                 @db.Text
+  generatedAt            DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@index([userId])
+  @@index([expertReportId])
+  @@index([expertReportRevisionId])
+  @@index([calculationRevisionId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditEvent {
+  id           String          @id @default(cuid())
+  userId       String?
+  user         AppUserProfile? @relation("AuditActor", fields: [userId], references: [id], onDelete: SetNull)
+  entityType   String
+  entityId     String
+  action       AuditAction
+  description  String?         @db.Text
+  previousData Json?
+  newData      Json?
+  ipAddress    String?
+  userAgent    String?         @db.Text
+  createdAt    DateTime        @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}

@@ -1,0 +1,25 @@
+// src/app/(private)/laudos/[reportId]/visualizar/styles.module.scss
+
+.page {
+    min-height: 100vh;
+    padding: 28px 4% 60px;
+    background:
+        radial-gradient(circle at top,
+            rgba(124, 58, 237, 0.1),
+            transparent 30%),
+        #e9eef5;
+}
+
+@media (max-width: 700px) {
+    .page {
+        padding: 18px 10px 38px;
+    }
+}
+
+@media print {
+    .page {
+        min-height: 0;
+        padding: 0;
+        background: #ffffff;
+    }
+}

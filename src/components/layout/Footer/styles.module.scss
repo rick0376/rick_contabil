@@ -1,0 +1,34 @@
+// src/components/layout/Footer/styles.module.scss
+
+.footer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    padding: 36px 7% 18px;
+    border-top: 4px solid #0dbf9d;
+    background: linear-gradient(110deg, #20212b, #071b44);
+    color: #d5ddec;
+
+    strong {
+        color: #eeb34d;
+    }
+
+    p {
+        margin: 8px 0 0;
+        color: #aeb8cc;
+    }
+}
+
+.bottom {
+    grid-column: 1 / -1;
+    padding-top: 20px;
+    border-top: 1px solid #2b3853;
+    color: #8995aa;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .footer {
+        grid-template-columns: 1fr;
+    }
+}

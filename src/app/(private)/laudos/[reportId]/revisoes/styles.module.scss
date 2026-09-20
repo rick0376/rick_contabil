@@ -1,0 +1,148 @@
+// src/app/(private)/laudos/[reportId]/revisoes/styles.module.scss
+
+.page {
+    width: min(1280px, 100%);
+    margin: 0 auto;
+    padding: 36px 5% 50px;
+}
+
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    padding: 30px;
+    border: 1px solid rgba(147, 51, 234, 0.25);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at top right,
+            rgba(147, 51, 234, 0.28),
+            transparent 35%),
+        linear-gradient(135deg,
+            #29115f,
+            #13072f);
+    color: #ffffff;
+    box-shadow:
+        0 20px 45px rgba(76, 29, 149, 0.2);
+
+    h1 {
+        margin: 10px 0 8px;
+        font-size:
+            clamp(30px, 4vw, 43px);
+    }
+
+    p {
+        max-width: 720px;
+        margin: 0;
+        color: #ddd6fe;
+        line-height: 1.65;
+    }
+}
+
+.badge {
+    display: inline-flex;
+    padding: 6px 11px;
+    border: 1px solid rgba(216, 180, 254, 0.5);
+    border-radius: 999px;
+    background: rgba(147, 51, 234, 0.18);
+    color: #f3e8ff;
+    font-size: 11px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.heroStatus {
+    min-width: 315px;
+    display: grid;
+    grid-template-columns:
+        auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.07);
+
+    strong,
+    span {
+        display: block;
+    }
+
+    strong {
+        margin-bottom: 4px;
+    }
+
+    span {
+        color: #d8b4fe;
+        font-size: 13px;
+    }
+
+    >svg {
+        color: #22c55e;
+    }
+}
+
+.heroIcon {
+    width: 53px;
+    height: 53px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    background:
+        linear-gradient(135deg,
+            #9333ea,
+            #c084fc);
+    color: #ffffff;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 30px 0 18px;
+
+    span {
+        color: #7c3aed;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    h2 {
+        margin: 5px 0 0;
+        color: #102b55;
+        font-size: 25px;
+    }
+
+    >svg {
+        width: 44px;
+        height: 44px;
+        padding: 11px;
+        border: 1px solid #ddd6fe;
+        border-radius: 13px;
+        background: #ffffff;
+        color: #7c3aed;
+    }
+}
+
+@media (max-width: 900px) {
+    .hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .heroStatus {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        padding: 24px 18px 38px;
+    }
+
+    .hero {
+        padding: 23px;
+    }
+}

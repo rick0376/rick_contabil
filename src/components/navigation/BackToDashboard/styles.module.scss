@@ -1,0 +1,24 @@
+// src/components/navigation/BackToDashboard/styles.module.scss
+
+.backButton {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 10px 16px;
+    border: 1px solid #173665;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #173665 58%, #071b44);
+    color: #ffffff;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(15, 47, 95, 0.24);
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateX(-3px);
+        filter: brightness(1.06);
+        box-shadow: 0 11px 23px rgba(15, 47, 95, 0.28);
+    }
+}
